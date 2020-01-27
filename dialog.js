@@ -148,7 +148,7 @@ function notification() {
     let dialogBox = document.querySelector('#xf-box-dialog');
     let observables = document.querySelectorAll('li[data-test-id="chat"] a>div>span')[0];
     // 声明提示音 js 创建一个 Audio
-    let myAudio = new Audio("https://freetone.org/files/7/samsung_s7.mp3");
+    let myAudio = new Audio("https://raw.githack.com/Github-XiaoFei/Tools/master/sound/samsung_s7.mp3");
     myAudio.loop = true; // 循环
     var saveValue = observables.innerText;
 
@@ -160,6 +160,7 @@ function notification() {
         if (newValue > saveValue) {
             myAudio.play();
             dialogBox.classList.remove('xf-hidden');
+            setTimeout(() => { myAudio.pause() }, 6e4)
         }
         saveValue = newValue;
     });
