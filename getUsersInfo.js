@@ -1,4 +1,3 @@
-// 定义各类变量
 var FBID = location.pathname.split('/')[1];
 var referrer = '';
 var widgetJSON = [];
@@ -9,6 +8,7 @@ var usersListHTML = "";
 var index = 1;
 var limiter = false;
 var assignment = '';
+var userThreadNote = [];
 var dateRange = Date.now() - (86400000 * 15);
 var usersInfoBox = document.querySelector("nav.p-b-sm > ul:nth-child(2)");
 // 上传的数据格式 主要是value定义了小部件的值
@@ -262,6 +262,10 @@ function innerHTML() {
                             <input  type="checkbox" disabled class="custom-control-input" id="my_tags">
                             <label class="custom-control-label" for="my_tags">标签</label>
                         </div>
+                        <div class="custom-control custom-checkbox my-1 mr-sm-2">
+                            <input  type="checkbox" disabled class="custom-control-input" id="my_userThreadNote">
+                            <label class="custom-control-label" for="my_userThreadNote">笔记</label>
+                        </div>
                     </form>
 
                     <div id="progress-box" class="progress d-none">
@@ -273,7 +277,7 @@ function innerHTML() {
                     <ul class="list-group">
                       <li class="list-group-item active">使用说明</li>
                       <li class="list-group-item">1. 点击“获取”列的“开始”按钮，等待约2秒；</li>
-                      <li class="list-group-item">2. 点击“输出”列按钮输出数据，等的进度完成；</li>
+                      <li class="list-group-item">2. 点击“输出”列按钮输出数据，等待进度完成；</li>
                       <li class="list-group-item">3. 输出数据后，可以把数据复制到 Google sheet 进一步操作；</li>
                       <li class="list-group-item list-group-item-warning">4. 操作中请不要刷新页面，如误操作请重复1~3步。</li>
                     </ul>
@@ -298,7 +302,8 @@ function innerHTML() {
                             <th scope="col" class="my_widgets" colspan="2">来源渠道</th>
                             <th scope="col" class="my_fields" colspan="3">来源值</th>
                             <th scope="col" class="my_assignment d-none">跟进人员</th>
-                            <th scope="col" class="my_tags d-none">标签</th>
+                            <th scope="col" class="my_tags d-none">标签</th> 
+                            <th scope="col" class="my_userThreadNote d-none" colspan="3">笔记</th> 
                         </tr>
                     </thead>
                     <tbody id="usersListBody"> </tbody>
@@ -508,6 +513,7 @@ function getUserInfo(userId) {
             if (uI.state) {
                 saveUsersInfo.push({
                     num: index++,
+                    user_id: uI.user.user_id,
                     name: uI.user.name,
                     avatar: uI.user.avatar,
                     raw_ts_added: uI.user.raw_ts_added,
@@ -518,10 +524,12 @@ function getUserInfo(userId) {
                     fields: uI.user.fields.map(i => i.value),
                     assignment: getAssignment(userId),  // 获取 assignment（分配） 的值
                     tags: uI.user.tags.map(i => i.tag_name),
+                    userThreadNote: getUserThreadNote(userId, '') // 获取用户线程注释  return array
                 });
             }
         });
     // 把重组后的用户信息传入到 saveUsersInfoFun 中
+    // console.log(saveUsersInfo)
     saveUsersInfoFun(saveUsersInfo);
 }
 
@@ -554,6 +562,48 @@ function getAssignment(userId) {
     return assignment;
 }
 
+/**
+ * 获取笔记
+ * @param {string} userId 用户id
+ * @param {string} limiterValue 极限值
+ */
+function getUserThreadNote(userId, limiterValue) {
+    loadMessages(userId, limiterValue)
+
+    function loadMessages(userId, limiterValue) {
+        if (userId == 'undefined') return false;
+        fetch(
+            `https://manychat.com/${FBID}/im/loadMessages?limit=50&user_id=${userId}&type=facebook${limiterValue}`,
+            {
+                method: "GET",
+                headers: {
+                    "user-agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
+                    "Content-Type": "application/json"
+                },
+                referrer: referrer
+            }
+        )
+            .then(response => response.json())
+            .then(uI => {
+                if (uI.state) {
+                    let limiter = uI.limiter;
+                    uI.messages.map(i => {
+                        if (i.type == 'user_thread_note') {
+                            userThreadNote.push(i.model.messages[0].content.text)
+                        }
+                    })
+
+                    if (limiter) {
+                        loadMessages(userId, '&limiter=' + limiter);
+                    }
+                }
+            });
+
+    }
+
+    return userThreadNote;
+}
 
 /**
  * 使用用户的详细信息生成 HTML
@@ -566,18 +616,29 @@ function saveUsersInfoFun(aSUI) {
         usersListHTML += `
             <tr>
                 <th scope="row">${i.num}</th>
+
                 <td class="text-center img-box my_avatar ${formCheckBox('my_avatar') ? '' : 'd-none'}">
-                <img src="${i.avatar}">
+                    <img src="${i.avatar}" onclick='window.open("https://manychat.com/${FBID}/chat/${i.user_id}", "_blank", "toolbar=yes,scrollbars=yes,resizable=yes,top=50,left=0,width=1024,height=680")' style="cursor:pointer">
                 </td>
+
                 <td class="my_name ${formCheckBox('my_name') ? '' : 'd-none'}" colspan="2">${i.name}</td>
+
                 <td class="my_gender ${formCheckBox('my_gender') ? '' : 'd-none'}">${i.gender}</td>
+
                 <td class="my_raw_ts_added  ${formCheckBox('my_raw_ts_added') ? '' : 'd-none'}">${new Date(Number(String(i.raw_ts_added).substring(0, 13))).toISOString().substring(0, 10)}</td>
+
                 <td class="my_locale ${formCheckBox('my_locale') ? '' : 'd-none'}">${i.locale}</td>
+
                 <td class="my_language ${formCheckBox('my_language') ? '' : 'd-none'}">${i.language}</td>
+
                 <td class="my_widgets ${formCheckBox('my_widgets') ? '' : 'd-none'}" colspan="2">${i.widgets ? i.widgets.join("<br>") : ""}</td>
+
                 <td class="my_fields ${formCheckBox('my_fields') ? '' : 'd-none'}" colspan="3" style="word-break: break-all;">${i.fields ? i.fields.join("<br>") : ""}</td>
+
                 <td class="my_assignment ${formCheckBox('my_assignment') ? '' : 'd-none'}">${i.assignment}</td>
                 <td class="my_tags ${formCheckBox('my_tags') ? '' : 'd-none'}"><span style="font-size:14px" class="badge badge-pill badge-info">${i.tags}</span></td>
+
+                <td class="my_userThreadNote ${formCheckBox('my_userThreadNote') ? '' : 'd-none'}"><span  colspan="3" style="word-break: break-all;">${i.userThreadNote ? i.userThreadNote.join("<br>") : ""}</span></td>
             </tr>
         `;
     });
