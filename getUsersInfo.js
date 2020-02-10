@@ -255,15 +255,15 @@ function innerHTML() {
                             <input checked type="checkbox" disabled class="custom-control-input" id="my_fields">
                             <label class="custom-control-label" for="my_fields">来源值</label>
                         </div>
-                        <div class="custom-control custom-checkbox my-1 mr-sm-2">
+                        <div class="custom-control custom-checkbox my-1 mr-sm-2 d-none">
                             <input  type="checkbox" disabled class="custom-control-input" id="my_assignment">
                             <label class="custom-control-label" for="my_assignment">跟进人员</label>
                         </div>
-                        <div class="custom-control custom-checkbox my-1 mr-sm-2">
+                        <div class="custom-control custom-checkbox my-1 mr-sm-2 d-none">
                             <input  type="checkbox" disabled class="custom-control-input" id="my_tags">
                             <label class="custom-control-label" for="my_tags">标签</label>
                         </div>
-                        <div class="custom-control custom-checkbox my-1 mr-sm-2">
+                        <div class="custom-control custom-checkbox my-1 mr-sm-2 d-none">
                             <input  type="checkbox" disabled class="custom-control-input" id="my_userThreadNote">
                             <label class="custom-control-label" for="my_userThreadNote">笔记</label>
                         </div>
