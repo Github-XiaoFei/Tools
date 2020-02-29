@@ -502,7 +502,7 @@ function loopUserInfo(arr, index) {
             clearInterval(foot);
         }
         i++;
-    }, 300)
+    }, 1000)
 
 }
 
