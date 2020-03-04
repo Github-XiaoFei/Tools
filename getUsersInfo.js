@@ -1,4 +1,3 @@
-// 定义各类变量
 var FBID = location.pathname.split('/')[1];
 var referrer = '';
 var widgetJSON = [];
@@ -52,9 +51,10 @@ function getWidgetValue() {
         .then(data => {
             if (data.state) {
                 data.segments.map(segment => {
-                    if (segment.type == "widget" && segment.active) {
+                    if ((segment.type === "widget" || segment.type === "tag") && segment.active) {
                         widgetJSON.push({
-                            type: segment.label,
+                            type: segment.type,
+                            label: segment.label,
                             value: segment.value,
                             count: segment.count
                         });
@@ -64,10 +64,14 @@ function getWidgetValue() {
 
             // 处理 widgetJSON 生成 HTML
             for (let a in widgetJSON) {
+                aUsersId.push([])
                 widgetHTML += `
-                <tr id="widget-${a}">
+                <tr id="${widgetJSON[a].type + '-' + a}" ${widgetJSON[a].type === "tag" ? 'class="d-none" style="background-color: #cce5ff78"' : 'style="background-color: #d4edda78"'}>
                     <th scope="row">${a}</th>
-                    <td>${widgetJSON[a].type}</td>
+                    <td>
+                        ${widgetJSON[a].label}
+                        <span class="badge ${widgetJSON[a].type === "tag" ? 'badge-primary' : 'badge-success'} ">${widgetJSON[a].type}</span>
+                    </td>
                     <td>${widgetJSON[a].count}</td>
                     <td>
                         <select id="data-select" class="form-control form-control-sm" style="width: 100px;">
@@ -80,8 +84,8 @@ function getWidgetValue() {
                             <option value="0" id="custom">自定义</option>
                         </select>
                     </td>
-                    <td id="get-Btn-Box"><button id="get-Btn-${a}" type="button" class="btn btn-primary btn-sm" onclick="getUsersId(${widgetJSON[a].value}, '', ${a}, dataSelect('widget-${a}'))">开始</button></td>
-                    <td><button style="pointer-events:none" id="print-Btn-${a}"  type="button" class="btn btn-secondary btn-sm disabled" onclick="loopUserInfo(aUsersId, ${a})">等待</button></td>
+                    <td id="get-Btn-Box"><button id="get-Btn-${a}" type="button" class="btn btn-primary btn-sm" onclick="getUsersId(${widgetJSON[a].value}, '', ${a}, dataSelect('${widgetJSON[a].type + "-" + a}'), '${widgetJSON[a].type}' )">开始</button></td>
+                    <td><button style="pointer-events:none" id="print-Btn-${a}"  type="button" class="btn btn-secondary btn-sm disabled" onclick="loopUserInfo(aUsersId[${a}], ${a})">等待</button></td>
                 </tr>
             `;
             }
@@ -206,11 +210,15 @@ function innerHTML() {
         <div id="widget" class="container" style="margin-bottom:20px">
             <div class="row">
                 <div class="col-9">
+                <p>
+                    <button id="widgetBtn" class="btn btn-success btn-sm" onclick="hid(this,'widget')">隐藏小部件(Widgets)</button>
+                    <button id="tagBtn" class="btn btn-primary btn-sm" onclick="hid(this,'tag')">显示标签(Tags)</button>
+                </p>
                     <table class="table">
                         <thead class="thead-light">
                         <tr>
                             <th scope="col">#</th>
-                            <th scope="col">工具名称</th>
+                            <th scope="col">名称</th>
                             <th scope="col">用户总数</th>
                             <th scope="col">日期范围</th>
                             <th scope="col">获取数据</th>
@@ -370,15 +378,16 @@ function formCheckBox(name) {
  * @param {number} index 小部件的索引值
  * @param {number} dateRange 日期范围 天数
  */
-function getUsersId(value, limiterValue, index, dateRange) {
-    // 如果不是有极限值 清空数组
-    limiter ? '' : aUsersId.length = 0;
+function getUsersId(value, limiterValue, index, dateRange, type) {
     // 保存小部件值、索引值和日期范围 便于下一次循环使用
     let valueS = value;
     let indexS = index;
     let dateRangeS = dateRange;
+    let typeS = type;
     let dateRangeOnOff = true;
     // 上传数据的 value 赋值为小部件的 value
+    dataUp.filter.groups[0].items[0].type = type;
+    dataUp.filter.groups[0].items[0].field = type;
     dataUp.filter.groups[0].items[0].value = value;
     fetch(
         `https://manychat.com/${FBID}/subscribers/search${limiterValue}`,
@@ -395,17 +404,19 @@ function getUsersId(value, limiterValue, index, dateRange) {
         .then(data => {
             if (data.state) {
                 limiter = data.limiter;
+                // 如果不是有极限值 清空数组
+                limiterValue ? '' : aUsersId[indexS].length = 0;
                 data.users.map(user => {
                     // 如果大于指定日期范围的用户 不把id保存到数组中
                     if (!(Math.trunc(user.raw_ts_added / 1000) >= Date.now() - (86400000 * dateRange))) {
                         dateRangeOnOff = false;
                         return
                     };
-                    aUsersId.push(user.user_id);
+                    aUsersId[indexS].push(user.user_id);
                 });
                 // 如果有极限值，递归
                 if (dateRangeOnOff && limiter) {
-                    getUsersId(valueS, "?limiter=" + limiter, indexS, dateRangeS);
+                    getUsersId(valueS, "?limiter=" + limiter, indexS, dateRangeS, typeS);
                 }
             }
 
@@ -413,12 +424,12 @@ function getUsersId(value, limiterValue, index, dateRange) {
     // 设置定时器 延迟操作 并判断是否有数据
     if (limiterValue == '') {
         setTimeout(() => {
-            if (aUsersId.length == 0) {
+            if (aUsersId[indexS].length == 0) {
                 alert('🔔没有获取到数据，可能是此日期范围内没有数据，请重新选择一个新的日期。')
             } else {
                 let oGetBtn = document.querySelector(`#get-Btn-${index}`);
                 let oPintBtn = document.querySelector(`#print-Btn-${index}`);
-                oGetBtn.innerText = `完成 有${aUsersId.length}人`;
+                oGetBtn.innerText = `完成 有${aUsersId[indexS].length}人`;
                 oGetBtn.classList.remove('btn-primary');
                 oGetBtn.classList.add('disabled', 'btn-success');
                 oGetBtn.style.pointerEvents = 'none';
@@ -431,6 +442,22 @@ function getUsersId(value, limiterValue, index, dateRange) {
     }
 
 
+}
+
+function hid(item,value) {
+    let oSub = document.querySelectorAll(`tr[id*=${value}-]`);
+    for (let i = 0; i < oSub.length; i++){
+        if (oSub[i].classList == 'd-none') {
+            oSub[i].classList.remove('d-none');
+        } else {
+            oSub[i].classList.add('d-none');
+        }
+    }
+    if (value == "tag" ) {
+        return item.innerHTML = item.innerHTML == "隐藏标签(Tags)" ? "显示标签(Tags)" : "隐藏标签(Tags)";
+    } else if (value == "widget") {
+        return item.innerHTML = item.innerHTML == "隐藏小部件(Widgets)" ? "显示小部件(Widgets)" : "隐藏小部件(Widgets)";
+    }
 }
 
 /**
@@ -474,6 +501,7 @@ function loopUserInfo(arr, index) {
     oProgressBox.classList.remove('d-none');
     oUsersList.classList.add('d-none');
     oUsersListBody.innerHTML = '';
+    oPintBtn.style.pointerEvents = 'none';
 
     // 进度条进度控制和 
     function progressBox() {
@@ -494,11 +522,12 @@ function loopUserInfo(arr, index) {
         } else {
             oUsersList.classList.remove('d-none');
             oPintBtn.innerText = '完成&重新开始';
+            oPintBtn.style.pointerEvents = '';
             oPintBtn.classList.remove('btn-success');
             oPintBtn.classList.add('btn-warning');
             progressBox();
             // 把重组后的用户信息传入到 saveUsersInfoFun 中
-            saveUsersInfoFun(saveUsersInfo);
+            saveUsersInfoFun(saveUsersInfo, index);
             clearInterval(foot);
         }
         i++;
@@ -508,7 +537,7 @@ function loopUserInfo(arr, index) {
 
 // 初始化
 function init() {
-    aUsersId.length = 0;
+    // aUsersId.length = 0;
     saveUsersInfo.length = 0;
     userThreadNote.length = 0;
     assignment.length = 0;
@@ -663,7 +692,7 @@ function filter(id, arr) {
  * 使用用户的详细信息生成 HTML
  * @param {Array} aSUI 单个用户详细的信息
  */
-function saveUsersInfoFun(aSUI) {
+function saveUsersInfoFun(aSUI, index) {
     if (typeof (aSUI[0]) == 'undefined') return false;
     // 定义一个对象，保存数值
     let oNames = {};
@@ -705,6 +734,7 @@ function saveUsersInfoFun(aSUI) {
                 <td class="my_userThreadNote ${oNames.my_userThreadNote}" colspan="3" style="word-break: break-all;">${filter(i.user_id, userThreadNote)}</td>
             </tr>
         `;
-        aUsersId.length == i.num ? innerUserListHTML() : '';
     });
+    aUsersId[index].length = 0;
+    innerUserListHTML()
 }
