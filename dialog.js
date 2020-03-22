@@ -160,7 +160,7 @@ function notification() {
         if (newValue > saveValue) {
             myAudio.play();
             dialogBox.classList.remove('xf-hidden');
-            setTimeout(() => { myAudio.pause() }, 6e4)
+            setTimeout(() => { myAudio.pause() }, 15000)
         }
         saveValue = newValue;
     });
