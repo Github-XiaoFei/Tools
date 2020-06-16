@@ -34,7 +34,7 @@ if( location.pathname !== '/wp-admin/plugins.php' ){
       <div id="TB_closeAjaxWindow"><button type="button" id="TB_closeWindowButton"><span
             class="screen-reader-text">关闭</span><span class="tb-close-icon"></span></button></div>
     </div>
-    <div><pre style="font-size:15px">${JSON.stringify(pluginTitle, null, 4)}</pre></div>
+    <div><pre style="font-size:15px; max-height:700px">${JSON.stringify(pluginTitle, null, 4)}</pre></div>
   </>
   `
   // 弹窗插入到页面中
