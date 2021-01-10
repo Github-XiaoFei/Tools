@@ -1,6 +1,5 @@
 function notification() {
     let body = document.querySelector('body');
-
     // html code
     let html = `
     <style>
@@ -146,11 +145,21 @@ function notification() {
     let clickBtn = document.querySelector('#xf-click-btn');
     let close = document.querySelector('#xf-close');
     let dialogBox = document.querySelector('#xf-box-dialog');
-    let observables = document.querySelectorAll('li[data-test-id="chat"] a>div>span')[0];
+    let manychatChatNum = document.querySelectorAll('li[data-test-id="chat"] a>div>span')[0];
+    let silferbotsChatNum = document.getElementById('num_live_chat');
     // 声明提示音 js 创建一个 Audio
     let myAudio = new Audio("https://raw.githack.com/Github-XiaoFei/Tools/master/sound/samsung_s7.mp3");
     myAudio.loop = true; // 循环
-    var saveValue = observables.innerText;
+
+    let saveValue = null;
+    let observables = null;
+    if (manychatChatNum) {
+        saveValue = manychatChatNum.innerText;
+        observables = manychatChatNum;
+    } else {
+        saveValue = silferbotsChatNum.innerText;
+        observables = silferbotsChatNum;
+    }
 
     // MutationObserver 它会在指定的DOM发生变化时被调用 (监控会话数量是否变化)
     // by https://jsfiddle.net/9P83S/1/
