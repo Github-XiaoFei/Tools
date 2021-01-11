@@ -173,7 +173,7 @@ function notification() {
         }
         saveValue = newValue;
     });
-    let config = { characterData: true, subtree: true };
+    let config = { childList: true, attributes: true, characterData: true, subtree: true };
     observer.observe(observables, config);
 
     // 点击停止音频播放并隐藏对话框
