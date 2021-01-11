@@ -1,4 +1,6 @@
 function notification() {
+    const href = location.href;
+    let idArr = ["439452453536447", "781692052034265", "1678094015605774"];
     let body = document.querySelector('body');
     // html code
     let html = `
@@ -142,11 +144,27 @@ function notification() {
     `;
     body.insertAdjacentHTML('afterbegin', html);
 
+    // 音频是否循环
+    function isAudioLoop(ids) {
+        let isAudioLoop = false;
+
+        ids.map((i) => {
+          if (~href.indexOf(i)) {
+            isAudioLoop = true;
+          }
+        })
+
+        return isAudioLoop;
+
+    }
+    
+    // 声明需要的元素
     let clickBtn = document.querySelector('#xf-click-btn');
     let close = document.querySelector('#xf-close');
     let dialogBox = document.querySelector('#xf-box-dialog');
     let manychatChatNum = document.querySelectorAll('li[data-test-id="chat"] a>div>span')[0];
     let silferbotsChatNum = document.getElementById('num_live_chat');
+    
     // 声明提示音 js 创建一个 Audio
     let myAudio = new Audio("https://raw.githack.com/Github-XiaoFei/Tools/master/sound/samsung_s7.mp3");
     myAudio.loop = true; // 循环
@@ -169,7 +187,12 @@ function notification() {
         if (newValue > saveValue) {
             myAudio.play();
             dialogBox.classList.remove('xf-hidden');
-            setTimeout(() => { myAudio.pause() }, 15000)
+            if (!isAudioLoop(idArr)) {
+                setTimeout(() => { 
+                    myAudio.pause();
+                    myAudio.currentTime = 0;
+                }, 15000)     
+            }
         }
         saveValue = newValue;
     });
@@ -179,6 +202,7 @@ function notification() {
     // 点击停止音频播放并隐藏对话框
     function stop() {
         myAudio.pause();
+        myAudio.currentTime = 0;
         dialogBox.classList.add('xf-hidden');
     }
     close.onclick = () => stop();
