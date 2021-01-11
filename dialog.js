@@ -185,4 +185,7 @@ function notification() {
     clickBtn.onclick = () => stop();
 
 }
-notification();
+
+window.onload = function() {
+    notification();
+};
