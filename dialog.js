@@ -183,6 +183,7 @@ function notification() {
     }
     close.onclick = () => stop();
     clickBtn.onclick = () => stop();
+    clickBtn.onclick = () => document.location.reload();
 
 }
 
