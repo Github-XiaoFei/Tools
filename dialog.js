@@ -182,7 +182,12 @@ function notification() {
     // MutationObserver 它会在指定的DOM发生变化时被调用 (监控会话数量是否变化)
     // by https://jsfiddle.net/9P83S/1/
     let observer = new MutationObserver(function (mutations) {
-        let newValue = mutations[0].target.innerText;
+        let newValue = null;
+        if(mutations[0].target.innerText){
+            newValue = mutations[0].target.innerText;
+        } else{
+            newValue = mutations[0].target.data;
+        }
         // 判断新值和保存的值 触发音频播放和显示对话框
         if (newValue > saveValue) {
             myAudio.play();
@@ -207,7 +212,10 @@ function notification() {
     }
     close.onclick = () => stop();
     clickBtn.onclick = () => stop();
-    clickBtn.onclick = () => document.location.reload();
+    if (~href.indexOf("silferbots")) {
+        clickBtn.onclick = () => document.location.reload();
+    }
+    
 
 }
 
