@@ -187,5 +187,5 @@ function notification() {
 }
 
 window.onload = function() {
-    notification();
+    setTimeout(() => { notification() }, 4000);
 };
