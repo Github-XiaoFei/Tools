@@ -212,7 +212,7 @@ function notification() {
     }
     close.onclick = () => stop();
     clickBtn.onclick = () => stop();
-    if (~href.indexOf("silferbots")) {
+    if (~href.indexOf("silfer")) {
         clickBtn.onclick = () => document.location.reload();
     }
     
