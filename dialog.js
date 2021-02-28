@@ -212,7 +212,7 @@ function notification() {
     }
     close.onclick = () => stop();
     clickBtn.onclick = () => stop();
-    if (~href.indexOf("silfer")) {
+    if (~href.indexOf("chatrace")) {
         clickBtn.onclick = () => document.location.reload();
     }
     
