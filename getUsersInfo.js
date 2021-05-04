@@ -13,24 +13,24 @@ var dateRange = Date.now() - (86400000 * 15);
 var usersInfoBox = document.querySelector("nav.p-b-sm > ul:nth-child(2)");
 // 上传的数据格式 主要是value定义了小部件的值
 var dataUp = {
-    q: "",
-    filter: {
+  q: "",
+  filter: {
+    operator: "AND",
+    groups: [
+      {
         operator: "AND",
-        groups: [
-            {
-                operator: "AND",
-                items: [
-                    {
-                        _oid: "",
-                        type: "widget",
-                        field: "widget",
-                        operator: "IS",
-                        value: 000000
-                    }
-                ]
-            }
+        items: [
+          {
+            _oid: "",
+            type: "widget",
+            field: "widget",
+            operator: "IS",
+            value: 000000
+          }
         ]
-    }
+      }
+    ]
+  }
 };
 
 /**
@@ -38,62 +38,88 @@ var dataUp = {
  * @func
  */
 function getWidgetValue() {
-    fetch("https://manychat.com/" + FBID + "/subscribers/segments", {
-        method: "GET",
-        headers: {
-            "user-agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
-            "Content-Type": "application/json"
-        },
-        referrer: referrer
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.state) {
-                data.segments.map(segment => {
-                    if ((segment.type === "widget" || segment.type === "tag") && segment.active) {
-                        widgetJSON.push({
-                            type: segment.type,
-                            label: segment.label,
-                            value: segment.value,
-                            count: segment.count
-                        });
-                    }
-                });
-            }
+  fetch("https://manychat.com/" + FBID + "/subscribers/segments", {
+    method: "GET",
+    headers: {
+      "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
+      "Content-Type": "application/json"
+    },
+    referrer: referrer
+  })
+    .then(response => response.json())
+    .then(data => {
 
-            // 处理 widgetJSON 生成 HTML
-            for (let a in widgetJSON) {
-                aUsersId.push([])
-                widgetHTML += `
-                <tr id="${widgetJSON[a].type + '-' + a}" ${widgetJSON[a].type === "tag" ? 'class="d-none" style="background-color: #cce5ff78"' : 'style="background-color: #d4edda78"'}>
-                    <th scope="row">${a}</th>
-                    <td>
-                        ${widgetJSON[a].label}
-                        <span class="badge ${widgetJSON[a].type === "tag" ? 'badge-primary' : 'badge-success'} ">${widgetJSON[a].type}</span>
-                    </td>
-                    <td>${widgetJSON[a].count}</td>
-                    <td>
-                        <select id="data-select" class="form-control form-control-sm" style="width: 100px;">
-                            <option value="7" selected>7天</option>
-                            <option value="15">15天</option>
-                            <option value="31">1个月</option>
-                            <option value="62">3个月</option>
-                            <option value="186">6个月</option>
-                            <option value="3650">全部</option>
-                            <option value="0" id="custom">自定义</option>
-                        </select>
-                    </td>
-                    <td id="get-Btn-Box"><button id="get-Btn-${a}" type="button" class="btn btn-primary btn-sm" onclick="getUsersId(${widgetJSON[a].value}, '', ${a}, dataSelect('${widgetJSON[a].type + "-" + a}'), '${widgetJSON[a].type}' )">开始</button></td>
-                    <td><button style="pointer-events:none" id="print-Btn-${a}"  type="button" class="btn btn-secondary btn-sm disabled" onclick="loopUserInfo(aUsersId[${a}], ${a})">等待</button></td>
-                </tr>
-            `;
-            }
-            // 调用 innerHTML 插入HTML
-            innerHTML();
-            // 调用 customData 创建控制表头
-            customData();
+      
+      if (data.state) {
+        data.segments.map(segment => {
+          if ((segment.type === "widget" || segment.type === "tag") && segment.active) {
+            widgetJSON.push({
+              type: segment.type,
+              label: segment.label,
+              value: segment.value,
+              count: segment.count
+            });
+          }
         });
+      }
+
+      // 处理 widgetJSON 生成 HTML
+      for (let a in widgetJSON) {
+        aUsersId.push([]);
+        if (a == 0) {
+          widgetHTML += `
+          <tr id="allUser-0" style="background-color: #ffeeba78"}>
+              <th scope="row">${a}</th>
+              <td>全部用户</td>
+              <td>xxxxx</td>
+              <td>
+                  <select id="data-select" class="form-control form-control-sm" style="width: 100px;">
+                      <option value="7" selected>7天</option>
+                      <option value="15">15天</option>
+                      <option value="31">1个月</option>
+                      <option value="62">3个月</option>
+                      <option value="186">6个月</option>
+                      <option value="3650">全部</option>
+                      <option value="0" id="custom">自定义</option>
+                  </select>
+              </td>
+              <td id="get-Btn-Box"><button id="get-Btn-${a}" type="button" class="btn btn-primary btn-sm" onclick="getUsersId('', '', ${a}, dataSelect('allUser-0'), 'allUser' )">开始</button></td>
+              <td><button style="pointer-events:none" id="print-Btn-${a}"  type="button" class="btn btn-secondary btn-sm disabled" onclick="loopUserInfo(aUsersId[${a}], ${a})">等待</button></td>
+          </tr>
+          `;
+        } else {
+          widgetHTML += `
+            <tr id="${widgetJSON[a].type + '-' + a}" ${widgetJSON[a].type === "tag" ? 'style="background-color: #cce5ff78"' : 'style="background-color: #d4edda78"'}>
+                <th scope="row">${a}</th>
+                <td>
+                    ${widgetJSON[a].label}
+                    <span class="badge ${widgetJSON[a].type === "tag" ? 'badge-primary' : 'badge-success'} ">${widgetJSON[a].type}</span>
+                </td>
+                <td>${widgetJSON[a].count}</td>
+                <td>
+                    <select id="data-select" class="form-control form-control-sm" style="width: 100px;">
+                        <option value="7" selected>7天</option>
+                        <option value="15">15天</option>
+                        <option value="31">1个月</option>
+                        <option value="62">3个月</option>
+                        <option value="186">6个月</option>
+                        <option value="3650">全部</option>
+                        <option value="0" id="custom">自定义</option>
+                    </select>
+                </td>
+                <td id="get-Btn-Box"><button id="get-Btn-${a}" type="button" class="btn btn-primary btn-sm" onclick="getUsersId(${widgetJSON[a].value}, '', ${a}, dataSelect('${widgetJSON[a].type + "-" + a}'), '${widgetJSON[a].type}' )">开始</button></td>
+                <td><button style="pointer-events:none" id="print-Btn-${a}"  type="button" class="btn btn-secondary btn-sm disabled" onclick="loopUserInfo(aUsersId[${a}], ${a})">等待</button></td>
+            </tr>
+            `;
+        }
+
+      }
+      // 调用 innerHTML 插入HTML
+      innerHTML();
+      // 调用 customData 创建控制表头
+      customData();
+    });
 }
 
 // Users Info 按钮生成 并插入到侧边栏
@@ -119,49 +145,49 @@ usersInfoBox.insertAdjacentHTML('afterbegin', usersInfoHtml);
  * @returns {string}
  */
 function dataSelect(widget) {
-    let dataSelect = document.querySelector(`#${widget} #data-select`);
-    let dataSelectValue = dataSelect.options[dataSelect.selectedIndex].value;
-    return dataSelectValue;
+  let dataSelect = document.querySelector(`#${widget} #data-select`);
+  let dataSelectValue = dataSelect.options[dataSelect.selectedIndex].value;
+  return dataSelectValue;
 }
 
 /**
  * 给控制表头显示板块添加 onchange 事件
  */
 function customData() {
-    let dataSelectBox = document.querySelectorAll('#widget tbody tr');
-    for (let i = 0; i < dataSelectBox.length; i++) {
-        let dataSelect = dataSelectBox[i].querySelector('#data-select');
-        dataSelect.onchange = () => {
-            let dataSelectText = dataSelect.options[dataSelect.selectedIndex].text;
-            let dataSelectValue = dataSelect.options[dataSelect.selectedIndex].value;
-            // 判断是否是 自定义 
-            if (dataSelectText == '自定义') {
-                // 弹出询问框，输入天数
-                result = window.prompt('👋请输入想要的天数。');
-                if (result && !(isNaN(parseFloat(result)))) {
-                    result = parseFloat(result).toFixed();
-                    dataSelect.options[dataSelect.selectedIndex].value = result;
-                    dataSelectValue = result;
-                } else {
-                    alert('🔔你没有输入任何内容，自定义日期为空。');
-                    dataSelect.firstElementChild.selected = true; // 选中第一个option
-                    dataSelectValue = dataSelect.firstElementChild.value;
-                }
-            }
-            dataSelect.title = dataSelectValue + "天";
-            // 获取数据和输出数据 按钮重置
-            let oGetBtn = document.querySelector(`#get-Btn-${i}`);
-            let oPintBtn = document.querySelector(`#print-Btn-${i}`);
-            oGetBtn.innerText = '开始';
-            oGetBtn.classList.add('btn-primary');
-            oGetBtn.classList.remove('disabled', 'btn-success');
-            oGetBtn.style.pointerEvents = '';
-            oPintBtn.innerText = '等待';
-            oPintBtn.classList.add('disabled', 'btn-secondary');
-            oPintBtn.classList.remove('btn-success', 'btn-warning');
-            init();
+  let dataSelectBox = document.querySelectorAll('#widget tbody tr');
+  for (let i = 0; i < dataSelectBox.length; i++) {
+    let dataSelect = dataSelectBox[i].querySelector('#data-select');
+    dataSelect.onchange = () => {
+      let dataSelectText = dataSelect.options[dataSelect.selectedIndex].text;
+      let dataSelectValue = dataSelect.options[dataSelect.selectedIndex].value;
+      // 判断是否是 自定义 
+      if (dataSelectText == '自定义') {
+        // 弹出询问框，输入天数
+        result = window.prompt('👋请输入想要的天数。');
+        if (result && !(isNaN(parseFloat(result)))) {
+          result = parseFloat(result).toFixed();
+          dataSelect.options[dataSelect.selectedIndex].value = result;
+          dataSelectValue = result;
+        } else {
+          alert('🔔你没有输入任何内容，自定义日期为空。');
+          dataSelect.firstElementChild.selected = true; // 选中第一个option
+          dataSelectValue = dataSelect.firstElementChild.value;
         }
+      }
+      dataSelect.title = dataSelectValue + "天";
+      // 获取数据和输出数据 按钮重置
+      let oGetBtn = document.querySelector(`#get-Btn-${i}`);
+      let oPintBtn = document.querySelector(`#print-Btn-${i}`);
+      oGetBtn.innerText = '开始';
+      oGetBtn.classList.add('btn-primary');
+      oGetBtn.classList.remove('disabled', 'btn-success');
+      oGetBtn.style.pointerEvents = '';
+      oPintBtn.innerText = '等待';
+      oPintBtn.classList.add('disabled', 'btn-secondary');
+      oPintBtn.classList.remove('btn-success', 'btn-warning');
+      init();
     }
+  }
 
 }
 
@@ -169,8 +195,8 @@ function customData() {
  * 插入自定义的HTML结构
  */
 function innerHTML() {
-    var getBootstrap =
-        `<style>
+  var getBootstrap =
+    `<style>
             .img-box{
                 width: 50px; 
                 height: 50px;
@@ -206,13 +232,13 @@ function innerHTML() {
         </style>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         `;
-    var widgetList = `
+  var widgetList = `
         <div id="widget" class="container" style="margin-bottom:20px">
             <div class="row">
                 <div class="col-9">
                 <p>
                     <button id="widgetBtn" class="btn btn-success btn-sm" onclick="hid(this,'widget')">隐藏小部件(Widgets)</button>
-                    <button id="tagBtn" class="btn btn-primary btn-sm" onclick="hid(this,'tag')">显示标签(Tags)</button>
+                    <button id="tagBtn" class="btn btn-primary btn-sm" onclick="hid(this,'tag')">隐藏标签(Tags)</button>
                 </p>
                     <table class="table">
                         <thead class="thead-light">
@@ -295,7 +321,7 @@ function innerHTML() {
             </div>
         </div>
     `;
-    var usersList = `
+  var usersList = `
         <div id="usersList" class="container d-none" style="max-width: 98%;">
         <div class="row">
             <div class="col-xl">
@@ -322,19 +348,19 @@ function innerHTML() {
         </div>
     </div>
     `;
-    document.querySelectorAll("#appContent")[0].innerHTML = getBootstrap + widgetList + usersList;
-    widgetJSON.length = '';
-    widgetHTML = '';
+  document.querySelectorAll("#appContent")[0].innerHTML = getBootstrap + widgetList + usersList;
+  widgetJSON.length = '';
+  widgetHTML = '';
 }
 
 /**
  * 插入最终生成的 UserList
  */
 function innerUserListHTML() {
-    let oUsersListBody = document.querySelector("#usersListBody");
-    oUsersListBody.innerHTML = usersListHTML;
-    formCheckBox('');
-    init();
+  let oUsersListBody = document.querySelector("#usersListBody");
+  oUsersListBody.innerHTML = usersListHTML;
+  formCheckBox('');
+  init();
 }
 
 /**
@@ -344,30 +370,30 @@ function innerUserListHTML() {
  * @returns {boolean} checkbox checked 状态
  */
 function formCheckBox(name) {
-    let checkBox = document.querySelector('#form').querySelectorAll('input[type="checkbox"]');
-    for (let i = 0; i < checkBox.length; i++) {
-        if (name) {
-            if (checkBox[i].id == name) {
-                return checkBox[i].checked
-            }
+  let checkBox = document.querySelector('#form').querySelectorAll('input[type="checkbox"]');
+  for (let i = 0; i < checkBox.length; i++) {
+    if (name) {
+      if (checkBox[i].id == name) {
+        return checkBox[i].checked
+      }
+    } else {
+      checkBox[i].removeAttribute('disabled');
+      checkBox[i].onchange = (ev) => {
+        let getClass = document.querySelectorAll(`.${ev.target.id}`);
+        if (ev.target.checked) {
+          for (let i = 0; i < getClass.length; i++) {
+            getClass[i].classList.remove('d-none')
+          }
         } else {
-            checkBox[i].removeAttribute('disabled');
-            checkBox[i].onchange = (ev) => {
-                let getClass = document.querySelectorAll(`.${ev.target.id}`);
-                if (ev.target.checked) {
-                    for (let i = 0; i < getClass.length; i++) {
-                        getClass[i].classList.remove('d-none')
-                    }
-                } else {
-                    for (let i = 0; i < getClass.length; i++) {
-                        getClass[i].classList.add('d-none')
-                    }
-                }
-            }
+          for (let i = 0; i < getClass.length; i++) {
+            getClass[i].classList.add('d-none')
+          }
         }
-
-
+      }
     }
+
+
+  }
 }
 
 
@@ -379,85 +405,90 @@ function formCheckBox(name) {
  * @param {number} dateRange 日期范围 天数
  */
 function getUsersId(value, limiterValue, index, dateRange, type) {
-    // 保存小部件值、索引值和日期范围 便于下一次循环使用
-    let valueS = value;
-    let indexS = index;
-    let dateRangeS = dateRange;
-    let typeS = type;
-    let dateRangeOnOff = true;
+  // 保存小部件值、索引值和日期范围 便于下一次循环使用
+  let valueS = value;
+  let indexS = index;
+  let dateRangeS = dateRange;
+  let typeS = type;
+  let dateRangeOnOff = true;
+  if (typeS == 'allUser') {
+    dataUp = { "q": "" };
+  } else {
     // 上传数据的 value 赋值为小部件的 value
     dataUp.filter.groups[0].items[0].type = type;
     dataUp.filter.groups[0].items[0].field = type;
-    dataUp.filter.groups[0].items[0].value = value;
-    fetch(
-        `https://manychat.com/${FBID}/subscribers/search${limiterValue}`,
-        {
-            method: "POST", // or 'PUT'
-            body: JSON.stringify(dataUp), // data can be `string` or {object}!
-            headers: new Headers({
-                "Content-Type": "application/json"
-            }),
-            referrer: referrer
-        }
-    )
-        .then(response => response.json())
-        .then(data => {
-            if (data.state) {
-                limiter = data.limiter;
-                // 如果不是有极限值 清空数组
-                limiterValue ? '' : aUsersId[indexS].length = 0;
-                data.users.map(user => {
-                    // 如果大于指定日期范围的用户 不把id保存到数组中
-                    if (!(Math.trunc(user.raw_ts_added / 1000) >= Date.now() - (86400000 * dateRange))) {
-                        dateRangeOnOff = false;
-                        return
-                    };
-                    aUsersId[indexS].push(user.user_id);
-                });
-                // 如果有极限值，递归
-                if (dateRangeOnOff && limiter) {
-                    getUsersId(valueS, "?limiter=" + limiter, indexS, dateRangeS, typeS);
-                }
-            }
+    dataUp.filter.groups[0].items[0].value = value;    
+  }
 
-        });
-    // 设置定时器 延迟操作 并判断是否有数据
-    if (limiterValue == '') {
-        setTimeout(() => {
-            if (aUsersId[indexS].length == 0) {
-                alert('🔔没有获取到数据，可能是此日期范围内没有数据，请重新选择一个新的日期。')
-            } else {
-                let oGetBtn = document.querySelector(`#get-Btn-${index}`);
-                let oPintBtn = document.querySelector(`#print-Btn-${index}`);
-                oGetBtn.innerText = `完成 有${aUsersId[indexS].length}人`;
-                oGetBtn.classList.remove('btn-primary');
-                oGetBtn.classList.add('disabled', 'btn-success');
-                oGetBtn.style.pointerEvents = 'none';
-                oPintBtn.innerText = '开始';
-                oPintBtn.style.pointerEvents = '';
-                oPintBtn.classList.remove('disabled', 'btn-secondary', 'btn-warning');
-                oPintBtn.classList.add('btn-success');
-            }
-        }, 2000)
+  fetch(
+    `https://manychat.com/${FBID}/subscribers/search${limiterValue}`,
+    {
+      method: "POST", // or 'PUT'
+      body: JSON.stringify(dataUp), // data can be `string` or {object}!
+      headers: new Headers({
+        "Content-Type": "application/json"
+      }),
+      referrer: referrer
     }
+  )
+    .then(response => response.json())
+    .then(data => {
+      if (data.state) {
+        limiter = data.limiter;
+        // 如果不是有极限值 清空数组
+        limiterValue ? '' : aUsersId[indexS].length = 0;
+        data.users.map(user => {
+          // 如果大于指定日期范围的用户 不把id保存到数组中
+          if (!(Math.trunc(user.raw_ts_added / 1000) >= Date.now() - (86400000 * dateRange))) {
+            dateRangeOnOff = false;
+            return
+          };
+          aUsersId[indexS].push(user.user_id);
+        });
+        // 如果有极限值，递归
+        if (dateRangeOnOff && limiter) {
+          getUsersId(valueS, "?limiter=" + limiter, indexS, dateRangeS, typeS);
+        }
+      }
+
+    });
+  // 设置定时器 延迟操作 并判断是否有数据
+  if (limiterValue == '') {
+    setTimeout(() => {
+      if (aUsersId[indexS].length == 0) {
+        alert('🔔没有获取到数据，可能是此日期范围内没有数据，请重新选择一个新的日期。')
+      } else {
+        let oGetBtn = document.querySelector(`#get-Btn-${index}`);
+        let oPintBtn = document.querySelector(`#print-Btn-${index}`);
+        oGetBtn.innerText = `完成 有${aUsersId[indexS].length}人`;
+        oGetBtn.classList.remove('btn-primary');
+        oGetBtn.classList.add('disabled', 'btn-success');
+        oGetBtn.style.pointerEvents = 'none';
+        oPintBtn.innerText = '开始';
+        oPintBtn.style.pointerEvents = '';
+        oPintBtn.classList.remove('disabled', 'btn-secondary', 'btn-warning');
+        oPintBtn.classList.add('btn-success');
+      }
+    }, 2000)
+  }
 
 
 }
 
-function hid(item,value) {
-    let oSub = document.querySelectorAll(`tr[id*=${value}-]`);
-    for (let i = 0; i < oSub.length; i++){
-        if (oSub[i].classList == 'd-none') {
-            oSub[i].classList.remove('d-none');
-        } else {
-            oSub[i].classList.add('d-none');
-        }
+function hid(item, value) {
+  let oSub = document.querySelectorAll(`tr[id*=${value}-]`);
+  for (let i = 0; i < oSub.length; i++) {
+    if (oSub[i].classList == 'd-none') {
+      oSub[i].classList.remove('d-none');
+    } else {
+      oSub[i].classList.add('d-none');
     }
-    if (value == "tag" ) {
-        return item.innerHTML = item.innerHTML == "隐藏标签(Tags)" ? "显示标签(Tags)" : "隐藏标签(Tags)";
-    } else if (value == "widget") {
-        return item.innerHTML = item.innerHTML == "隐藏小部件(Widgets)" ? "显示小部件(Widgets)" : "隐藏小部件(Widgets)";
-    }
+  }
+  if (value == "tag") {
+    return item.innerHTML = item.innerHTML == "隐藏标签(Tags)" ? "显示标签(Tags)" : "隐藏标签(Tags)";
+  } else if (value == "widget") {
+    return item.innerHTML = item.innerHTML == "隐藏小部件(Widgets)" ? "显示小部件(Widgets)" : "隐藏小部件(Widgets)";
+  }
 }
 
 /**
@@ -466,85 +497,85 @@ function hid(item,value) {
  * @param {number} index 小部件的索引值
  */
 function loopUserInfo(arr, index) {
-    let oGetBtn = document.querySelector(`#get-Btn-${index}`);
-    let oPintBtn = document.querySelector(`#print-Btn-${index}`);
-    // 如果数组为空 提示重新获取
-    if (arr.length == 0) {
-        result = window.confirm('🔔数据已经输出，你想重新获取吗？');
-        if (result) {
-            oGetBtn.innerText = '开始';
-            oGetBtn.classList.add('btn-primary');
-            oGetBtn.classList.remove('disabled', 'btn-success');
-            oGetBtn.style.pointerEvents = '';
-            oPintBtn.innerText = '等待';
-            oPintBtn.classList.add('disabled', 'btn-secondary');
-            oPintBtn.classList.remove('btn-success', 'btn-warning');
-            init();
-        }
-        return;
+  let oGetBtn = document.querySelector(`#get-Btn-${index}`);
+  let oPintBtn = document.querySelector(`#print-Btn-${index}`);
+  // 如果数组为空 提示重新获取
+  if (arr.length == 0) {
+    result = window.confirm('🔔数据已经输出，你想重新获取吗？');
+    if (result) {
+      oGetBtn.innerText = '开始';
+      oGetBtn.classList.add('btn-primary');
+      oGetBtn.classList.remove('disabled', 'btn-success');
+      oGetBtn.style.pointerEvents = '';
+      oPintBtn.innerText = '等待';
+      oPintBtn.classList.add('disabled', 'btn-secondary');
+      oPintBtn.classList.remove('btn-success', 'btn-warning');
+      init();
     }
+    return;
+  }
 
-    // 预先获取到 “笔记”和“跟进人员”信息
-    arr.map(i => {
-        getUserThreadNote(i, '');
-        getAssignment(i)
-    });
+  // 预先获取到 “笔记”和“跟进人员”信息
+  arr.map(i => {
+    getUserThreadNote(i, '');
+    getAssignment(i)
+  });
 
-    // 保存数组信息和进度条信息
-    let per = 0;
-    let i = 0;
-    let length = arr.length;
-    let oProgressBox = document.querySelector('#progress-box');
-    let oProgress = document.querySelector('#progress');
-    let oUsersList = document.querySelector('#usersList');
-    let oUsersListBody = document.querySelector("#usersListBody");
-    oProgressBox.classList.remove('d-none');
-    oUsersList.classList.add('d-none');
-    oUsersListBody.innerHTML = '';
-    oPintBtn.style.pointerEvents = 'none';
+  // 保存数组信息和进度条信息
+  let per = 0;
+  let i = 0;
+  let length = arr.length;
+  let oProgressBox = document.querySelector('#progress-box');
+  let oProgress = document.querySelector('#progress');
+  let oUsersList = document.querySelector('#usersList');
+  let oUsersListBody = document.querySelector("#usersListBody");
+  oProgressBox.classList.remove('d-none');
+  oUsersList.classList.add('d-none');
+  oUsersListBody.innerHTML = '';
+  oPintBtn.style.pointerEvents = 'none';
 
-    // 进度条进度控制和 
-    function progressBox() {
-        per = parseInt(i / length * 100);
-        oProgress.style.width = `${per}%`;
-        oProgress.setAttribute('aria-valuenow', per);
-        oProgress.setAttribute('aria-valuemin', 0);
-        oProgress.setAttribute('aria-valuemax', length);
-        oProgress.innerText = `${per}%`;
+  // 进度条进度控制和 
+  function progressBox() {
+    per = parseInt(i / length * 100);
+    oProgress.style.width = `${per}%`;
+    oProgress.setAttribute('aria-valuenow', per);
+    oProgress.setAttribute('aria-valuemin', 0);
+    oProgress.setAttribute('aria-valuemax', length);
+    oProgress.innerText = `${per}%`;
+  }
+
+  // 请求用户详细数据 定时器控制传入 user_id 的速率
+  let foot = setInterval(() => {
+    if (i < length) {
+      // 获取单个用户的详细信息，重组用户信息
+      getUserInfo(arr[i]);
+      progressBox();
+    } else {
+      oUsersList.classList.remove('d-none');
+      oPintBtn.innerText = '完成&重新开始';
+      oPintBtn.style.pointerEvents = '';
+      oPintBtn.classList.remove('btn-success');
+      oPintBtn.classList.add('btn-warning');
+      progressBox();
+      // 把重组后的用户信息传入到 saveUsersInfoFun 中
+      saveUsersInfoFun(saveUsersInfo, index);
+      clearInterval(foot);
     }
-
-    // 请求用户详细数据 定时器控制传入 user_id 的速率
-    let foot = setInterval(() => {
-        if (i < length) {
-            // 获取单个用户的详细信息，重组用户信息
-            getUserInfo(arr[i]);
-            progressBox();
-        } else {
-            oUsersList.classList.remove('d-none');
-            oPintBtn.innerText = '完成&重新开始';
-            oPintBtn.style.pointerEvents = '';
-            oPintBtn.classList.remove('btn-success');
-            oPintBtn.classList.add('btn-warning');
-            progressBox();
-            // 把重组后的用户信息传入到 saveUsersInfoFun 中
-            saveUsersInfoFun(saveUsersInfo, index);
-            clearInterval(foot);
-        }
-        i++;
-    }, 1000)
+    i++;
+  }, 1000)
 
 }
 
 // 初始化
 function init() {
-    // aUsersId.length = 0;
-    saveUsersInfo.length = 0;
-    userThreadNote.length = 0;
-    assignment.length = 0;
-    index = 1;
-    usersListHTML = '';
-    let oProgressBox = document.querySelector('#progress-box');
-    oProgressBox.classList.add('d-none');
+  // aUsersId.length = 0;
+  saveUsersInfo.length = 0;
+  userThreadNote.length = 0;
+  assignment.length = 0;
+  index = 1;
+  usersListHTML = '';
+  let oProgressBox = document.querySelector('#progress-box');
+  oProgressBox.classList.add('d-none');
 }
 
 /**
@@ -552,38 +583,38 @@ function init() {
  * @param {number} userId 单个 user_id
  */
 function getUserInfo(userId) {
-    if (userId == '') return false;
-    fetch(
-        "https://manychat.com/" + FBID + "/subscribers/details?user_id=" +
-        userId,
-        {
-            method: "GET",
-            headers: {
-                "user-agent":
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
-                "Content-Type": "application/json"
-            },
-            referrer: referrer
-        }
-    )
-        .then(response => response.json())
-        .then(uI => {
-            if (uI.state) {
-                saveUsersInfo.push({
-                    num: index++,
-                    user_id: uI.user.user_id,
-                    name: uI.user.name,
-                    avatar: uI.user.avatar,
-                    raw_ts_added: uI.user.raw_ts_added,
-                    gender: uI.user.gender,
-                    locale: uI.user.locale,
-                    language: uI.user.language,
-                    widgets: uI.user.widgets.map(i => i.tag_name),
-                    fields: uI.user.fields.map(i => i.value),
-                    tags: uI.user.tags.map(i => i.tag_name)
-                });
-            }
+  if (userId == '') return false;
+  fetch(
+    "https://manychat.com/" + FBID + "/subscribers/details?user_id=" +
+    userId,
+    {
+      method: "GET",
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
+        "Content-Type": "application/json"
+      },
+      referrer: referrer
+    }
+  )
+    .then(response => response.json())
+    .then(uI => {
+      if (uI.state) {
+        saveUsersInfo.push({
+          num: index++,
+          user_id: uI.user.user_id,
+          name: uI.user.name,
+          avatar: uI.user.avatar,
+          raw_ts_added: uI.user.raw_ts_added,
+          gender: uI.user.gender,
+          locale: uI.user.locale,
+          language: uI.user.language,
+          widgets: uI.user.widgets.map(i => i.tag_name),
+          fields: uI.user.fields.map(i => i.value),
+          tags: uI.user.tags.map(i => i.tag_name)
         });
+      }
+    });
 }
 
 /**
@@ -592,28 +623,28 @@ function getUserInfo(userId) {
  * @returns {string} 返回字符串
  */
 function getAssignment(userId) {
-    if (userId == '') return false;
-    fetch(
-        "https://manychat.com/" + FBID + "/im/loadThread?user_id=" + userId,
-        {
-            method: "GET",
-            headers: {
-                "user-agent":
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
-                "Content-Type": "application/json"
-            },
-            referrer: referrer
-        }
-    )
-        .then(response => response.json())
-        .then(uI => {
-            if (uI.state) {
-                assignment.push({
-                    user_id: uI.thread.user_id,
-                    value: uI.thread.assignment ? uI.thread.assignment.name : '',
-                })
-            }
-        });
+  if (userId == '') return false;
+  fetch(
+    "https://manychat.com/" + FBID + "/im/loadThread?user_id=" + userId,
+    {
+      method: "GET",
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
+        "Content-Type": "application/json"
+      },
+      referrer: referrer
+    }
+  )
+    .then(response => response.json())
+    .then(uI => {
+      if (uI.state) {
+        assignment.push({
+          user_id: uI.thread.user_id,
+          value: uI.thread.assignment ? uI.thread.assignment.name : '',
+        })
+      }
+    });
 }
 
 /**
@@ -622,57 +653,57 @@ function getAssignment(userId) {
  * @param {string} limiterValue 极限值
  */
 function getUserThreadNote(userId, limiterValue) {
-    if (userId == '') return false;
-    return fetch(
-        "https://manychat.com/" + FBID + "/im/loadMessages?limit=50&user_id=" + userId + limiterValue,
-        {
-            method: "GET",
-            headers: {
-                "user-agent":
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
-                "Content-Type": "application/json"
-            },
-            referrer: referrer
-        }
-    )
-        .then(response => response.json())
-        .then(uI => {
-            if (uI.state) {
-                let limiter = uI.limiter;
-                if (limiterValue == '') {
-                    userThreadNote.push({
-                        user_id: uI.messages ? uI.messages[0].user_id : '',
-                        value:
-                            // 过滤符合条件的值 并返回
-                            uI.messages.filter(i => {
-                                return i.type == 'user_thread_note'
-                            }).map(i => {
-                                return i.model.messages[0].content.text
-                            })
-                    })
-                } else {
-                    // 递归情况下 往 userThreadNote.value 中添加新值
-                    userThreadNote.map((item, index) => {
-                        if (userId == item.user_id) {
-                            userThreadNote[index].value.push.apply(userThreadNote[index].value,
-                                uI.messages.filter(i => {
-                                    return i.type == 'user_thread_note'
-                                }).map(i => {
-                                    return i.model.messages[0].content.text
-                                })
-                            )
+  if (userId == '') return false;
+  return fetch(
+    "https://manychat.com/" + FBID + "/im/loadMessages?limit=50&user_id=" + userId + limiterValue,
+    {
+      method: "GET",
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
+        "Content-Type": "application/json"
+      },
+      referrer: referrer
+    }
+  )
+    .then(response => response.json())
+    .then(uI => {
+      if (uI.state) {
+        let limiter = uI.limiter;
+        if (limiterValue == '') {
+          userThreadNote.push({
+            user_id: uI.messages ? uI.messages[0].user_id : '',
+            value:
+              // 过滤符合条件的值 并返回
+              uI.messages.filter(i => {
+                return i.type == 'user_thread_note'
+              }).map(i => {
+                return i.model.messages[0].content.text
+              })
+          })
+        } else {
+          // 递归情况下 往 userThreadNote.value 中添加新值
+          userThreadNote.map((item, index) => {
+            if (userId == item.user_id) {
+              userThreadNote[index].value.push.apply(userThreadNote[index].value,
+                uI.messages.filter(i => {
+                  return i.type == 'user_thread_note'
+                }).map(i => {
+                  return i.model.messages[0].content.text
+                })
+              )
 
-                        }
-                    })
-                }
-
-                // 如果有极限值 => 递归
-                if (limiter) {
-                    getUserThreadNote(userId, "&type=facebook&limiter=" + limiter);
-                    return
-                }
             }
-        });
+          })
+        }
+
+        // 如果有极限值 => 递归
+        if (limiter) {
+          getUserThreadNote(userId, "&type=facebook&limiter=" + limiter);
+          return
+        }
+      }
+    });
 }
 
 /**
@@ -682,30 +713,30 @@ function getUserThreadNote(userId, limiterValue) {
  * @returns {string} 数组中存储的值
  */
 function filter(id, arr) {
-    for (let i = 0; i < arr.length; i++) {
-        if (arr[i].user_id == id) {
-            return arr[i].value
-        }
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].user_id == id) {
+      return arr[i].value
     }
+  }
 }
 /**
  * 使用用户的详细信息生成 HTML
  * @param {Array} aSUI 单个用户详细的信息
  */
 function saveUsersInfoFun(aSUI, index) {
-    if (typeof (aSUI[0]) == 'undefined') return false;
-    // 定义一个对象，保存数值
-    let oNames = {};
-    // 存储td的类名
-    let tdClassName = ['my_avatar', 'my_name', 'my_gender', 'my_raw_ts_added', 'my_locale', 'my_language', 'my_widgets', 'my_fields', 'my_assignment', 'my_tags', 'my_userThreadNote'];
-    // 遍历 td，formCheckBox() 返回表头 checked 状态
-    tdClassName.map((i) => {
-        oNames[i] = formCheckBox(i) ? '' : 'd-none';
-    })
+  if (typeof (aSUI[0]) == 'undefined') return false;
+  // 定义一个对象，保存数值
+  let oNames = {};
+  // 存储td的类名
+  let tdClassName = ['my_avatar', 'my_name', 'my_gender', 'my_raw_ts_added', 'my_locale', 'my_language', 'my_widgets', 'my_fields', 'my_assignment', 'my_tags', 'my_userThreadNote'];
+  // 遍历 td，formCheckBox() 返回表头 checked 状态
+  tdClassName.map((i) => {
+    oNames[i] = formCheckBox(i) ? '' : 'd-none';
+  })
 
-    usersListHTML = "";
-    aSUI.map(i => {
-        usersListHTML += `
+  usersListHTML = "";
+  aSUI.map(i => {
+    usersListHTML += `
             <tr>
                 <th scope="row">${i.num}</th>
 
@@ -734,7 +765,7 @@ function saveUsersInfoFun(aSUI, index) {
                 <td class="my_userThreadNote ${oNames.my_userThreadNote}" colspan="3" style="word-break: break-all;">${filter(i.user_id, userThreadNote)}</td>
             </tr>
         `;
-    });
-    aUsersId[index].length = 0;
-    innerUserListHTML()
+  });
+  aUsersId[index].length = 0;
+  innerUserListHTML()
 }
