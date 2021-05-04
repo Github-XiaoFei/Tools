@@ -469,7 +469,7 @@ function getUsersId(value, limiterValue, index, dateRange, type) {
         oPintBtn.classList.remove('disabled', 'btn-secondary', 'btn-warning');
         oPintBtn.classList.add('btn-success');
       }
-    }, 2000)
+    }, 10000)
   }
 
 
@@ -562,7 +562,7 @@ function loopUserInfo(arr, index) {
       clearInterval(foot);
     }
     i++;
-  }, 1000)
+  }, 900)
 
 }
 
