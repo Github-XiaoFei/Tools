@@ -311,7 +311,7 @@ function innerHTML() {
                 <div class="col-3">
                     <ul class="list-group">
                       <li class="list-group-item active">使用说明</li>
-                      <li class="list-group-item">1. 点击“获取”列的“开始”按钮，等待约2秒；</li>
+                      <li class="list-group-item">1. 点击“获取”列的“开始”按钮，等待约5秒；</li>
                       <li class="list-group-item">2. 点击“输出”列按钮输出数据，等待进度完成；</li>
                       <li class="list-group-item">3. 输出数据后，可以把数据复制到 Google sheet 进一步操作；</li>
                       <li class="list-group-item list-group-item-warning">4. 操作中请不要刷新页面，如误操作请重复1~3步。</li>
@@ -469,7 +469,7 @@ function getUsersId(value, limiterValue, index, dateRange, type) {
         oPintBtn.classList.remove('disabled', 'btn-secondary', 'btn-warning');
         oPintBtn.classList.add('btn-success');
       }
-    }, 10000)
+    }, 5000)
   }
 
 
